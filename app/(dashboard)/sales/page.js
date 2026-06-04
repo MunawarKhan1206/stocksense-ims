@@ -102,6 +102,12 @@ function SalesPageContent() {
         fetch('/api/products', { cache: 'no-store' }),
       ])
 
+      // Redirect if forbidden
+      if (salesRes.status === 403 || productsRes.status === 403) {
+        router.replace('/forbidden')
+        return
+      }
+
       // Handle HTTP errors
       if (!salesRes.ok) {
         throw new Error('Failed to fetch sales')

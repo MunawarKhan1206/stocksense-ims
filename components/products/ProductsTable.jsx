@@ -131,6 +131,7 @@ export default function ProductsTable({ products = [], onEdit, onDelete }) {
                 <TableCell>
                   <div className="flex items-center space-x-3">
                     {prod.imageUrl ? (
+                       // eslint-disable-next-line @next/next/no-img-element
                        <img 
                          src={prod.imageUrl} 
                          alt={prod.name} 

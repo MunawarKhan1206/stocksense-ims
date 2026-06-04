@@ -200,7 +200,7 @@ export default function CommandBar({ isOpen, setIsOpen }) {
             </div>
           ) : selectableItems.length === 0 ? (
             <div className="py-10 text-center text-sm text-textMuted">
-              No results found for "{query}"
+              No results found for &ldquo;{query}&rdquo;
             </div>
           ) : (
             <>

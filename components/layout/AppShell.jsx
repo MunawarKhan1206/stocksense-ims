@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useState, useEffect, createContext, useContext, Suspense } from 'react'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
 import MobileNav from './MobileNav'
@@ -11,27 +11,28 @@ import CommandBar from './CommandBar'
 export const CommandBarContext = createContext(null)
 export const useCommandBar = () => useContext(CommandBarContext)
 
-const PUBLIC_ROUTES = ['/login']
-
-
-export default function AppShell({ children }) {
+function AppShellInner({ children }) {
   const pathname = usePathname()
   const router = useRouter()
   const { data: session, status } = useSession()
+  const [profile, setProfile] = useState(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isCommandBarOpen, setIsCommandBarOpen] = useState(false)
 
-  const isPublicRoute = PUBLIC_ROUTES.includes(pathname)
-
-  // Redirect immediately when unauthenticated on protected routes
+  // Fetch profile details from database securely
   useEffect(() => {
-    if (status === 'unauthenticated' && !isPublicRoute) {
-      router.push('/login')
+    if (status === 'authenticated') {
+      fetch('/api/users/me')
+        .then((res) => res.json())
+        .then((data) => {
+          if (!data.error) setProfile(data)
+        })
+        .catch((err) => console.error('Failed to load profile:', err))
     }
-  }, [status, isPublicRoute, router])
+  }, [status])
 
+  // Keyboard shortcuts
   useEffect(() => {
-    if (isPublicRoute) return
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault()
@@ -44,7 +45,7 @@ export default function AppShell({ children }) {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isPublicRoute])
+  }, [])
 
   useEffect(() => { setIsSidebarOpen(false) }, [pathname])
 
@@ -57,10 +58,7 @@ export default function AppShell({ children }) {
     return () => { document.body.style.overflow = '' }
   }, [isSidebarOpen, isCommandBarOpen])
 
-  if (isPublicRoute) {
-    return <main className="min-h-screen bg-surfaceBg">{children}</main>
-  }
-
+  // ── LOADING — branded splash ──
   if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-screen bg-surfaceBg">
@@ -85,23 +83,7 @@ export default function AppShell({ children }) {
     )
   }
 
-  if (status === 'unauthenticated') {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-surfaceBg">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="w-12 h-12 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center">
-            <svg className="w-6 h-6 text-brandDanger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-            </svg>
-          </div>
-          <p className="text-textPrimary font-medium">Session expired</p>
-          <p className="text-textMuted text-sm">Redirecting to login...</p>
-        </div>
-      </div>
-    )
-  }
-
+  // ── AUTHENTICATED — full dashboard shell ──
   return (
     <CommandBarContext.Provider value={{ open: () => setIsCommandBarOpen(true) }}>
       <div className="h-screen w-full flex bg-surfaceBg text-textPrimary antialiased overflow-hidden">
@@ -110,7 +92,7 @@ export default function AppShell({ children }) {
 
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex md:flex-col w-[240px] shrink-0 sticky top-0 h-screen">
-          <Sidebar />
+          <Sidebar profile={profile} />
         </aside>
 
         {/* Mobile Sidebar Overlay */}
@@ -121,7 +103,7 @@ export default function AppShell({ children }) {
               onClick={() => setIsSidebarOpen(false)}
             />
             <div className="fixed inset-y-0 left-0 z-50 w-[240px] md:hidden shadow-2xl">
-              <Sidebar onClose={() => setIsSidebarOpen(false)} />
+              <Sidebar onClose={() => setIsSidebarOpen(false)} profile={profile} />
             </div>
           </>
         )}
@@ -131,6 +113,7 @@ export default function AppShell({ children }) {
           <TopBar
             onOpenSidebar={() => setIsSidebarOpen(true)}
             onOpenCommandBar={() => setIsCommandBarOpen(true)}
+            profile={profile}
           />
           <main className="flex-1 overflow-y-auto" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="p-4 md:p-6 lg:p-8 pb-28 md:pb-8 min-h-full">
@@ -142,5 +125,19 @@ export default function AppShell({ children }) {
         <MobileNav />
       </div>
     </CommandBarContext.Provider>
+  )
+}
+
+export default function AppShell({ children }) {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-surfaceBg">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-coral flex items-center justify-center shadow-brand animate-pulse">
+          <span className="text-white text-3xl font-black">S</span>
+        </div>
+      </div>
+    }>
+      <AppShellInner>{children}</AppShellInner>
+    </Suspense>
   )
 }

@@ -6,12 +6,16 @@ import { useSession, signOut } from 'next-auth/react'
 import { LayoutDashboard, Package, ShoppingCart, Truck, BarChart2, Mail, LogOut, X } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
-export default function Sidebar({ onClose }) {
+export default function Sidebar({ onClose, profile }) {
   const pathname = usePathname()
   const { data: session } = useSession()
 
-  const user = session?.user || { name: 'User', email: '', role: 'staff' }
-  const role = user.role || 'staff'
+  const role = session?.user?.role || 'staff'
+  const user = profile || {
+    name: session?.user?.email ? session.user.email.split('@')[0] : 'User',
+    email: session?.user?.email || '',
+    role
+  }
 
   const mainNav = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['super-admin', 'admin', 'inventory-staff', 'sales-staff', 'viewer'] },

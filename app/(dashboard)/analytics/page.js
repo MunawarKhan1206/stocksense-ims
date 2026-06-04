@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { BarChart3, TrendingUp, Archive, History, Layers } from 'lucide-react'
 import { Card } from '@/components/ui/card'
@@ -13,6 +14,7 @@ import CategoryPieChart from '@/components/dashboard/CategoryPieChart'
 const COLORS = ['#FF6B6B', '#4A9AF5', '#34D399', '#FFB347', '#A78BFA']
 
 export default function AnalyticsPage() {
+  const router = useRouter()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -20,6 +22,10 @@ export default function AnalyticsPage() {
     const fetchAnalytics = async () => {
       try {
         const res = await fetch('/api/analytics/summary', { cache: 'no-store' })
+        if (res.status === 403) {
+          router.replace('/forbidden')
+          return
+        }
         if (res.ok) {
           const summary = await res.json()
           setData(summary)

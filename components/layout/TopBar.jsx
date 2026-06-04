@@ -7,9 +7,14 @@ import { Menu, Search, Bell, AlertTriangle, User } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 
-export default function TopBar({ onOpenSidebar, onOpenCommandBar }) {
+export default function TopBar({ onOpenSidebar, onOpenCommandBar, profile }) {
   const pathname = usePathname()
   const { data: session } = useSession()
+  
+  const user = profile || {
+    name: session?.user?.email ? session.user.email.split('@')[0] : 'User',
+    image: null
+  }
   const [notifications, setNotifications] = useState([])
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   const notificationRef = useRef(null)
@@ -203,9 +208,9 @@ export default function TopBar({ onOpenSidebar, onOpenCommandBar }) {
 
         {/* Profile Avatar */}
         <Avatar className="w-8 h-8 border border-borderColor select-none cursor-pointer">
-          {session?.user?.image && <AvatarImage src={session.user.image} alt={session.user.name} />}
+          {user.image && <AvatarImage src={user.image} alt={user.name} />}
           <AvatarFallback className="bg-gradient-coral text-white text-xs font-bold">
-            {getInitials(session?.user?.name || 'Admin')}
+            {getInitials(user.name)}
           </AvatarFallback>
         </Avatar>
       </div>

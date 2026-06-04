@@ -1,7 +1,6 @@
 import './globals.css'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import ClientProviders from '@/components/providers/ClientProviders'
-import AppShell from '@/components/layout/AppShell'
 import { Toaster } from 'sonner'
 import { Analytics } from '@vercel/analytics/next'
 
@@ -30,9 +29,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`h-full ${jakarta.variable}`}>
       <body className="h-full overflow-hidden bg-brandBg antialiased font-sans">
         <ClientProviders>
-          <AppShell>
-            {children}
-          </AppShell>
+          {children}
         </ClientProviders>
         <Toaster position="bottom-right" richColors />
         <Analytics />
@@ -40,3 +37,4 @@ export default function RootLayout({ children }) {
     </html>
   )
 }
+

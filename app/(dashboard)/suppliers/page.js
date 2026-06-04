@@ -51,6 +51,11 @@ function SuppliersPageContent() {
     try {
       const res = await fetch('/api/suppliers', { cache: 'no-store' })
 
+      if (res.status === 403) {
+        router.replace('/forbidden')
+        return
+      }
+
       if (!res.ok) {
         throw new Error('Failed to load suppliers')
       }
