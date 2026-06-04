@@ -147,7 +147,7 @@ function SalesPageContent() {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, router])
 
   // ======================================================
   // INITIAL LOAD

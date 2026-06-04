@@ -37,7 +37,7 @@ export default function AnalyticsPage() {
       }
     }
     fetchAnalytics()
-  }, [])
+  }, [router])
 
   if (loading) {
     return (

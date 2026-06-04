@@ -73,7 +73,9 @@ function LoginForm() {
       } else {
         toast.success('Signed in successfully!')
         // Redirect to originally requested page, or dashboard
-        router.push(decodeURIComponent(callbackUrl))
+        const decodedUrl = decodeURIComponent(callbackUrl)
+        const finalUrl = (decodedUrl === '/' || !decodedUrl) ? '/dashboard' : decodedUrl
+        router.push(finalUrl)
         router.refresh()
       }
     } catch {
@@ -86,7 +88,9 @@ function LoginForm() {
   }
 
   const handleGoogleLogin = () => {
-    signIn('google', { callbackUrl: decodeURIComponent(callbackUrl) })
+    const decodedUrl = decodeURIComponent(callbackUrl)
+    const finalUrl = (decodedUrl === '/' || !decodedUrl) ? '/dashboard' : decodedUrl
+    signIn('google', { callbackUrl: finalUrl })
   }
 
   return (

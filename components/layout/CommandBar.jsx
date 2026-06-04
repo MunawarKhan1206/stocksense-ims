@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Package, ShoppingCart, Truck, Plus, ArrowRight, LayoutDashboard, BarChart2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -37,87 +37,89 @@ export default function CommandBar({ isOpen, setIsOpen }) {
     fetchData()
   }, [isOpen])
 
-  const handleNavigate = (path) => {
+  const handleNavigate = useCallback((path) => {
     router.push(path)
     setIsOpen(false)
-  }
+  }, [router, setIsOpen])
 
   // Predefined lists
-  const navigationItems = [
+  const navigationItems = useMemo(() => [
     { id: 'nav-dashboard', category: 'Navigation', title: 'Go to Dashboard', action: () => handleNavigate('/dashboard'), icon: LayoutDashboard },
     { id: 'nav-products',  category: 'Navigation', title: 'Go to Products',  action: () => handleNavigate('/products'),  icon: Package },
     { id: 'nav-sales',     category: 'Navigation', title: 'Go to Sales',     action: () => handleNavigate('/sales'),     icon: ShoppingCart },
     { id: 'nav-suppliers', category: 'Navigation', title: 'Go to Suppliers', action: () => handleNavigate('/suppliers'), icon: Truck },
     { id: 'nav-analytics', category: 'Navigation', title: 'Go to Analytics', action: () => handleNavigate('/analytics'), icon: BarChart2 },
-  ]
+  ], [handleNavigate])
 
-  const quickActions = [
+  const quickActions = useMemo(() => [
     { id: 'act-add-product',  category: 'Quick Actions', title: 'Add Product',  action: () => { router.push('/products?openAdd=true');  setIsOpen(false) }, shortcut: '⌥P', icon: Plus },
     { id: 'act-record-sale',  category: 'Quick Actions', title: 'Record Sale',  action: () => { router.push('/sales?openAdd=true');     setIsOpen(false) }, shortcut: '⌥S', icon: Plus },
     { id: 'act-add-supplier', category: 'Quick Actions', title: 'Add Supplier', action: () => { router.push('/suppliers?openAdd=true'); setIsOpen(false) }, shortcut: '⌥V', icon: Plus },
-  ]
+  ], [router, setIsOpen])
 
   // Filter based on query
-  const filteredNav = query 
+  const filteredNav = useMemo(() => query 
     ? navigationItems.filter(item => item.title.toLowerCase().includes(query.toLowerCase()))
-    : navigationItems
+    : navigationItems, [query, navigationItems])
 
-  const filteredActions = query
+  const filteredActions = useMemo(() => query
     ? quickActions.filter(item => item.title.toLowerCase().includes(query.toLowerCase()))
-    : quickActions
+    : quickActions, [query, quickActions])
 
-  const filteredProducts = query 
+  const filteredProducts = useMemo(() => query 
     ? products.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()) || p.sku.toLowerCase().includes(query.toLowerCase())) 
-    : products.slice(0, 3)
+    : products.slice(0, 3), [query, products])
 
-  const filteredSales = query 
+  const filteredSales = useMemo(() => query 
     ? sales.filter((s) => s.invoiceNo.toLowerCase().includes(query.toLowerCase())) 
-    : sales.slice(0, 3)
+    : sales.slice(0, 3), [query, sales])
 
-  const filteredSuppliers = query 
+  const filteredSuppliers = useMemo(() => query 
     ? suppliers.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()) || s.company?.toLowerCase().includes(query.toLowerCase())) 
-    : suppliers.slice(0, 3)
+    : suppliers.slice(0, 3), [query, suppliers])
 
   // Construct flat list with indices for keyboard navigation
-  let currentIndex = 0
-  const navWithIndex = filteredNav.map(item => ({ ...item, globalIndex: currentIndex++ }))
-  const actionsWithIndex = filteredActions.map(item => ({ ...item, globalIndex: currentIndex++ }))
-  const productsWithIndex = filteredProducts.map(p => ({
-    id: p._id,
-    title: p.name,
-    subtitle: p.sku,
-    badge: `${p.stock} units`,
-    badgeType: p.stock <= p.threshold ? 'danger' : 'success',
-    icon: Package,
-    action: () => handleNavigate('/products'),
-    globalIndex: currentIndex++
-  }))
-  const salesWithIndex = filteredSales.map(s => ({
-    id: s._id,
-    title: s.invoiceNo,
-    subtitle: `by ${s.recordedBy?.name || 'Admin'}`,
-    badge: `Rs. ${s.totalAmount?.toLocaleString()}`,
-    badgeType: 'success-text',
-    icon: ShoppingCart,
-    action: () => handleNavigate('/sales'),
-    globalIndex: currentIndex++
-  }))
-  const suppliersWithIndex = filteredSuppliers.map(s => ({
-    id: s._id,
-    title: s.name,
-    subtitle: s.company ? `(${s.company})` : '',
-    icon: Truck,
-    action: () => handleNavigate('/suppliers'),
-    globalIndex: currentIndex++
-  }))
+  const selectableItems = useMemo(() => {
+    let currentIndex = 0
+    const navWithIndex = filteredNav.map(item => ({ ...item, globalIndex: currentIndex++ }))
+    const actionsWithIndex = filteredActions.map(item => ({ ...item, globalIndex: currentIndex++ }))
+    const productsWithIndex = filteredProducts.map(p => ({
+      id: p._id,
+      title: p.name,
+      subtitle: p.sku,
+      badge: `${p.stock} units`,
+      badgeType: p.stock <= p.threshold ? 'danger' : 'success',
+      icon: Package,
+      action: () => handleNavigate('/products'),
+      globalIndex: currentIndex++
+    }))
+    const salesWithIndex = filteredSales.map(s => ({
+      id: s._id,
+      title: s.invoiceNo,
+      subtitle: `by ${s.recordedBy?.name || 'Admin'}`,
+      badge: `Rs. ${s.totalAmount?.toLocaleString()}`,
+      badgeType: 'success-text',
+      icon: ShoppingCart,
+      action: () => handleNavigate('/sales'),
+      globalIndex: currentIndex++
+    }))
+    const suppliersWithIndex = filteredSuppliers.map(s => ({
+      id: s._id,
+      title: s.name,
+      subtitle: s.company ? `(${s.company})` : '',
+      icon: Truck,
+      action: () => handleNavigate('/suppliers'),
+      globalIndex: currentIndex++
+    }))
 
-  const selectableItems = [
-    ...navWithIndex,
-    ...actionsWithIndex,
-    ...productsWithIndex,
-    ...salesWithIndex,
-    ...suppliersWithIndex
-  ]
+    return [
+      ...navWithIndex,
+      ...actionsWithIndex,
+      ...productsWithIndex,
+      ...salesWithIndex,
+      ...suppliersWithIndex
+    ]
+  }, [filteredNav, filteredActions, filteredProducts, filteredSales, filteredSuppliers, handleNavigate])
 
   // Reset selection index when query changes
   useEffect(() => {

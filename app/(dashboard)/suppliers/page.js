@@ -45,7 +45,7 @@ function SuppliersPageContent() {
   const [selectedSupplier, setSelectedSupplier] = useState(null)
 
   // Fetch suppliers
-  const fetchSuppliers = async () => {
+  const fetchSuppliers = useCallback(async () => {
     setLoading(true)
 
     try {
@@ -70,11 +70,11 @@ function SuppliersPageContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
 
   useEffect(() => {
     fetchSuppliers()
-  }, [])
+  }, [fetchSuppliers])
 
   // Open Add Modal from command bar
   useEffect(() => {
