@@ -49,8 +49,14 @@ export default function TopBar({ onOpenSidebar, onOpenCommandBar, profile }) {
       }
     }
     fetchOrgs()
-    setSelectedOrg(localStorage.getItem('selectedOrgId') || 'all')
   }, [isSuperAdmin])
+
+  useEffect(() => {
+    const stored = localStorage.getItem('selectedOrgId') || 'all'
+    Promise.resolve().then(() => {
+      setSelectedOrg(stored)
+    })
+  }, [])
 
   const handleOrgChange = (e) => {
     const val = e.target.value

@@ -1,3 +1,5 @@
+import '../node_modules/tw-animate-css/dist/tw-animate.css'
+import '../node_modules/shadcn/dist/tailwind.css'
 import './globals.css'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import ClientProviders from '@/components/providers/ClientProviders'

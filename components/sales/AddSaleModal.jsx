@@ -17,14 +17,12 @@ export default function AddSaleModal({ isOpen, onClose, products = [], onSuccess
   const [loading, setLoading] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  // Reset modal state on close
-  useEffect(() => {
-    if (!isOpen) {
-      setItems([{ product: '', quantity: 1, unitPrice: 0, costPrice: 0, subtotal: 0, stock: 0 }])
-      setPaymentMethod('Cash')
-      setSubmitError('')
-    }
-  }, [isOpen])
+  const handleClose = () => {
+    setItems([{ product: '', quantity: 1, unitPrice: 0, costPrice: 0, subtotal: 0, stock: 0 }])
+    setPaymentMethod('Cash')
+    setSubmitError('')
+    onClose()
+  }
 
   // Handle product dropdown change
   const handleProductChange = (index, productId) => {
@@ -114,7 +112,7 @@ export default function AddSaleModal({ isOpen, onClose, products = [], onSuccess
       }
 
       onSuccess()
-      onClose()
+      handleClose()
       toast.success('Sales transaction recorded successfully!')
     } catch (err) {
       console.error(err)
@@ -126,7 +124,7 @@ export default function AddSaleModal({ isOpen, onClose, products = [], onSuccess
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Record New Sales Transaction</DialogTitle>
@@ -271,7 +269,7 @@ export default function AddSaleModal({ isOpen, onClose, products = [], onSuccess
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="secondary" onClick={onClose}>
+            <Button type="button" variant="secondary" onClick={handleClose}>
               Cancel
             </Button>
             <Button 
